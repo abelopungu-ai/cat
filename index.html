@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cat's gift Ultimate Mini App</title>
+<style>
+body { margin:0; font-family:'Segoe UI',sans-serif; background:#020617; color:white; overflow-x:hidden; }
+/* PARTICLES */
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* HEADER & TABS */
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 20px;
+  background:linear-gradient(90deg,#3b82f6,#9333ea);
+  position:sticky;top:0;z-index:100;
+}
+header h1{font-size:1.5em;margin:0;}
+header button{
+  background:rgba(255,255,255,0.2);
+  border:none;padding:8px 12px;margin-left:8px;border-radius:8px;color:white;cursor:pointer;
+  transition:0.3s;
+}
+header button:hover{background:rgba(255,255,255,0.4);transform:scale(1.05);}
+
+/* SCREENS */
+.screen{display:none;padding:20px;animation:fadeIn 0.5s;}
+.active{display:block;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* CHAT */
+.chat{max-width:400px;margin:auto;z-index:1;position:relative;}
+.msg{padding:10px;margin:10px;border-radius:10px;max-width:70%;opacity:0;transition:all 0.5s ease; transform:translateX(50px);}
+.msg.show{opacity:1;transform:translateX(0);}
+.me{background:#3b82f6;margin-left:auto;transform:translateX(50px);}
+.her{background:#1e293b;transform:translateX(-50px);}
+.typing{font-style:italic;opacity:0.7;}
+
+/* GALLERY */
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;}
+.gallery img{width:100%;border-radius:10px;cursor:pointer;transition:transform 0.6s;transform-style:preserve-3d;}
+.gallery img:hover{transform:scale(1.05) rotateY(15deg);}
+.gallery img.flipped{transform:rotateY(180deg);}
+#viewer{position:fixed;top:0;left:0;width:100%;height:100%;display:none;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;}
+#viewer img{max-width:90%;max-height:90%;}
+
+/* QUIZ */
+.option{background:#1e293b;padding:10px;margin:10px;border-radius:8px;cursor:pointer;transition:0.2s;}
+.option:hover{background:#3b82f6;transform:scale(1.05);}
+
+/* UNLOCK POPUP */
+#unlockPopup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;font-size:2em;animation:fadeIn 0.5s;}
+
+/* CONFETTI */
+canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:10;}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- LOCK SCREEN -->
+<div id="lock" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:black;">
+  <h2>Enter Password 🔐</h2>
+  <input type="password" id="pass">
+  <button onclick="unlock()">Enter</button>
+</div>
+
+<!-- HEADER -->
+<header style="display:none;" id="appHeader">
+  <h1>Cat System 🎉</h1>
+  <div>
+    <button onclick="switchTab('home')">🏠 Home</button>
+    <button onclick="switchTab('chat')">💬 Chat</button>
+    <button onclick="switchTab('gallery')">📸 Gallery</button>
+    <button onclick="switchTab('quiz')">🎮 Quiz</button>
+    <button onclick="switchTab('secret')">🔐 Secret</button>
+    <button onclick="playMusic()">🎵 Music</button>
+  </div>
+</header>
+
+<!-- SCREENS -->
+<div id="home" class="screen active">
+  <h1>🎂 Happy Birthday Cat 😛</h1>
+  <p>Welcome to your ultimate mini app gift 🎉</p>
+</div>
+
+<div id="chat" class="screen">
+  <h2>Chat 💬</h2>
+  <div class="chat" id="chatBox"></div>
+  <button onclick="startChat()">Start Chat</button>
+  <button onclick="voiceNote()">🎤 Voice Note</button>
+</div>
+
+<div id="gallery" class="screen">
+  <h2>Memories 📸</h2>
+  <div class="gallery">
+    <img src="img1.jpeg">
+    <img src="img2.jpeg">
+    <img src="img3.jpeg">
+    <img src="img4.jpeg">
+    <img src="img5.jpeg">
+    <img src="img6.jpeg">
+  </div>
+</div>
+
+<div id="quiz" class="screen">
+  <h2>How well do you know me? 😏</h2>
+  <div id="quizBox"></div>
+</div>
+
+<div id="secret" class="screen">
+  <h2>Secret ❤️</h2>
+  <p id="secretText">Click reveal...</p>
+  <button onclick="reveal()">Reveal</button>
+</div>
+
+<div id="unlockPopup">🔓 Secret Unlocked 🎉</div>
+<div id="viewer" onclick="closeViewer()"><img id="fullImg"></div>
+<audio id="music" loop><source src="song.mp3" type="audio/mpeg"></audio>
+
+<script>
+const PASSWORD="banana girl";
+let unlockedSecret=false;
+
+/* UNLOCK */
+function unlock(){
+  let val=document.getElementById("pass").value.toLowerCase();
+  if(val===PASSWORD){
+    document.getElementById("lock").style.display="none";
+    document.getElementById("appHeader").style.display="flex";
+    switchTab('home');
+    initParticles();
+  } else alert("Wrong password 😭");
+}
+
+/* TAB SWITCH */
+function switchTab(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+}
+
+/* CHAT */
+const convo=[
+  {text:"Hey Cat 😄",type:"me"},
+  {text:"Happy late birthday...gift 🎉",type:"me"},
+  {text:"(this is how i'd imagine a reply,,but its just being creative😭)Wait… you remembered??",type:"her"},
+  {text:"Of course I did 😂",type:"me"},
+  {text:"You’re actually like a part of me(not in a weird way😭)",type:"me"},
+  {text:"Aww stop 😭",type:"her"},
+  {text:"have fun with this🎉",type:"me"},
+  {text:"idk where you'll use this but have fun😂",type:"me"}
+];
+function startChat(){
+  let i=0; const box=document.getElementById("chatBox"); box.innerHTML="";
+  function send(){
+    if(i<convo.length){
+      if(convo[i].type==="her"){
+        let typing=document.createElement("div");
+        typing.className="msg her typing"; typing.innerText="typing...";
+        box.appendChild(typing);
+        setTimeout(()=>{
+          typing.remove();
+          let msg=document.createElement("div"); msg.className="msg her"; msg.innerText=convo[i].text;
+          box.appendChild(msg); box.scrollTop = box.scrollHeight;
+          setTimeout(()=>{msg.classList.add("show");},50);
+          i++; setTimeout(send,1200);
+        },1500);
+      } else {
+        let msg=document.createElement("div"); msg.className="msg me"; msg.innerText=convo[i].text;
+        box.appendChild(msg); box.scrollTop = box.scrollHeight;
+        setTimeout(()=>{msg.classList.add("show");},50);
+        i++; setTimeout(send,1000);
+      }
+    }
+  }
+  send();
+}
+
+/* VOICE NOTE */
+function voiceNote(){alert("🎤 Imagine I just sent you a voice note saying happy birthday,,coding si rahisi jameni 😭");}
+
+/* GALLERY */
+function view(src){document.getElementById("viewer").style.display="flex";document.getElementById("fullImg").src=src;}
+function closeViewer(){document.getElementById("viewer").style.display="none";}
+
+document.querySelectorAll('.gallery img').forEach(img => {
+  img.addEventListener('click', e => {
+    img.classList.toggle('flipped');
+    view(img.src);
+  });
+});
+
+/* QUIZ */
+const quiz = [
+  {q:"What do I usually call you?",options:["Cat 😝","Weirdo 😭","nigga🌚","All"],answer:4},
+  {q:"Who is more annoying?",options:["Me","You","Both 😭","Depends"],answer:2}
+];
+
+  
+  {
+    q: "What's my favorite color (aside from black/blue)?",
+    options: ["grey","Green","Yellow","Orange"],
+    answer: 0
+  },
+  {
+    q: "When is my birthday?",
+    options: ["March 19","January 5","December 25","July 17"],
+    answer: 3
+  },
+  {
+    q: "what was my first text to you?😭",
+    options: ["hiii😭","is that jenga?😭","happy birthday🎉","greetings and salutations fine shi 😂"],
+    answer: 1
+  },
+  {
+    q: "What's my go-to comfort food?",
+    options: ["Pizza 🍕","Chips 🍟","Chocolate 🍫","Ice cream 🍦"],
+    answer: 0
+  },
+  {
+    q: "Which drink can I never refuse?",
+    options: ["Soda 🥤","Coffee ☕","Juice 🧃","Water 💧"],
+    answer: 3
+  },
+  {
+    q: "Which emoji do I spam the most in chats?",
+    options: ["😂","😭","😛","❤️"],
+    answer: 1
+  },
+  {
+    q: "What's my favorite way to spend free time?",
+    options: ["Gaming 🎮","Scrolling memes 😂","Listening to music 🎵","Sleeping 😴"],
+    answer: 2
+  },
+  {
+    q: "What’s the one habit of mine that always makes you laugh?",
+    options: ["my fumbling 😭","how funny i actually am(i'm the goat) 😂","Overthinking everything 😛","All of the above"],
+    answer: 3
+];
+let qi=0,score=0;
+function loadQuiz(){
+  if(qi>=quiz.length){
+    let box=document.getElementById("quizBox");
+    if(score===quiz.length){ unlockedSecret=true; showUnlock(); startConfetti(); }
+    let message=score===quiz.length?"You know me too well 😂❤️":score>=quiz.length*0.7?"Not bad 😌 but you missed some...":score>=quiz.length*0.4?"Yeah… we need to talk 😭":"Oof 😭 Pay attention 😂";
+    box.innerHTML=`<h2>Score: ${score}/${quiz.length}</h2><p>${message}</p><button onclick="restartQuiz()">Try Again</button>`;
+    return;
+  }
+  let q=quiz[qi]; let box=document.getElementById("quizBox"); box.innerHTML="<h3>"+q.q+"</h3>";
+  q.options.forEach((opt,i)=>{
+    let d=document.createElement("div"); d.className="option"; d.innerText=opt;
+    d.onclick=()=>{ if(i===q.answer) score++; qi++; loadQuiz(); };
+    box.appendChild(d);
+  });
+}
+function restartQuiz(){ qi=0; score=0; unlockedSecret=false; loadQuiz(); }
+loadQuiz();
+
+/* UNLOCK ANIMATION */
+function showUnlock(){ 
+  let pop=document.getElementById("unlockPopup"); 
+  pop.style.display="flex";
+  setTimeout(()=>{
+    pop.style.display="none"; 
+    switchTab('secret');
+    let txt="";
+    if(score===quiz.length){txt="Wow 😭 You really know me! Love you so much ❤️🔥";}
+    else if(score>=quiz.length*0.7){txt="Not bad 😌 You know a lot about me, still love you 😛";}
+    else if(score>=quiz.length*0.4){txt="Haha 😅 Some things you got right… some you missed. Still love you 😭";}
+    else{txt="Oof 😭 You really need to pay more attention to me 😂 But love you anyway ❤️";}
+    document.getElementById("secretText").innerText=txt;
+    startConfetti();
+  },2000);
+}
+
+/* SECRET */
+function reveal(){
+  if(!unlockedSecret){ document.getElementById("secretText").innerText="🚫 You need to score higher in the quiz first 😭"; return; }
+  document.getElementById("secretText").innerText="Okay… no jokes here,,I really appreciate you,, I love you nigga(the nigga was very necessary) ❤️";
+  startConfetti();
+}
+
+/* MUSIC */
+function playMusic(){document.getElementById("music").play();}
+
+/* PARTICLES & CONFETTI */
+let particles=[],canvas=document.getElementById("particles"),ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+function initParticles(){for(let i=0;i<100;i++){particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+1,dx:(Math.random()-0.5)*1.5,dy:(Math.random()-0.5)*1.5,color:`hsl(${Math.random()*360},80%,60%)`});} animateParticles();}
+function animateParticles(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{p.x+=p.dx;p.y+=p.dy;if(p.x<0||p.x>canvas.width)p.dx*=-1;if(p.y<0||p.y>canvas.height)p.dy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.fill();});requestAnimationFrame(animateParticles);}
+function startConfetti(){for(let i=0;i<150;i++){setTimeout(()=>{particles.push({x:Math.random()*canvas.width,y:-10,r:Math.random()*4+2,dx:(Math.random()-0.5)*2,dy:Math.random()*3+2,color:`hsl(${Math.random()*360},90%,60%)`});},i*10);}}
+</script>
+</body>
+</html>
