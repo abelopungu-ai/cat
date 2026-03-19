@@ -63,7 +63,7 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:10;}
 <div id="lock" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:black;">
   <h2>Enter Password 🔐</h2>
   <input type="password" id="pass">
-  <button onclick="unlock()">Enter</button>
+  <button id="unlockBtn">Enter</button>
 </div>
 
 <!-- HEADER -->
@@ -79,58 +79,33 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:10;}
   </div>
 </header>
 
-<!-- SCREENS -->
-<div id="home" class="screen active">
-  <h1>🎂 Happy Birthday Cat 😛</h1>
-  <p>Welcome to your ultimate mini app gift 🎉</p>
-</div>
-
-<div id="chat" class="screen">
-  <h2>Chat 💬</h2>
-  <div class="chat" id="chatBox"></div>
-  <button onclick="startChat()">Start Chat</button>
-  <button onclick="voiceNote()">🎤 Voice Note</button>
-</div>
-
-<div id="gallery" class="screen">
-  <h2>Memories 📸</h2>
-  <div class="gallery">
-    <img src="img1.jpeg">
-    <img src="img2.jpeg">
-    <img src="img3.jpeg">
-    <img src="img4.jpeg">
-    <img src="img5.jpeg">
-    <img src="img6.jpeg">
-  </div>
-</div>
-
-<div id="quiz" class="screen">
-  <h2>How well do you know me? 😏</h2>
-  <div id="quizBox"></div>
-</div>
-
-<div id="secret" class="screen">
-  <h2>Secret ❤️</h2>
-  <p id="secretText">Click reveal...</p>
-  <button onclick="reveal()">Reveal</button>
-</div>
-
-<div id="unlockPopup">🔓 Secret Unlocked 🎉</div>
-<div id="viewer" onclick="closeViewer()"><img id="fullImg"></div>
-<audio id="music" loop><source src="song.mp3" type="audio/mpeg"></audio>
-
 <script>
+// Make sure JS runs after page loads
 document.addEventListener("DOMContentLoaded", () => {
   const PASSWORD = "banana girl";
 
-  document.querySelector("button").addEventListener("click", () => {
-    let val = document.getElementById("pass").value.toLowerCase();
+  const lockDiv = document.getElementById("lock");
+  const header = document.getElementById("appHeader");
+  const input = document.getElementById("pass");
+  const btn = document.getElementById("unlockBtn");
+
+  btn.addEventListener("click", () => {
+    let val = input.value.trim().toLowerCase();
     if(val === PASSWORD){
-      document.getElementById("lock").style.display="none";
-      document.getElementById("appHeader").style.display="flex";
-      switchTab('home');
-      initParticles();
-    } else alert("Wrong password 😭");
+      lockDiv.style.display = "none";
+      header.style.display = "flex";
+      switchTab('home'); // Make sure switchTab function exists
+      initParticles();   // Optional: start confetti/particles
+    } else {
+      alert("Wrong password 😭");
+      input.value = "";
+      input.focus();
+    }
+  });
+
+  // Optional: allow Enter key to unlock
+  input.addEventListener("keypress", (e) => {
+    if(e.key === "Enter") btn.click();
   });
 });
 </script>
