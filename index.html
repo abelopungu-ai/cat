@@ -120,16 +120,20 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:10;}
 <audio id="music" loop><source src="song.mp3" type="audio/mpeg"></audio>
 
 <script>
-const PASSWORD = "banana girl"; 
-function unlock() {
-  let val = document.getElementById("pass").value.toLowerCase();
-  if(val === PASSWORD){
-    document.getElementById("lock").style.display="none";
-    document.getElementById("appHeader").style.display="flex";
-    switchTab('home');
-    initParticles();
-  } else alert("Wrong password 😭");
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const PASSWORD = "banana girl";
+
+  document.querySelector("button").addEventListener("click", () => {
+    let val = document.getElementById("pass").value.toLowerCase();
+    if(val === PASSWORD){
+      document.getElementById("lock").style.display="none";
+      document.getElementById("appHeader").style.display="flex";
+      switchTab('home');
+      initParticles();
+    } else alert("Wrong password 😭");
+  });
+});
+</script>
 
 /* TAB SWITCH */
 function switchTab(tab){
